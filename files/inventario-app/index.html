@@ -1,0 +1,733 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InventApp – Control de Inventario para Equipos</title>
+  <meta name="description" content="Sistema de control de inventario inteligente. Gestiona altas, bajas y stock en tiempo real desde tu celular.">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#6366f1">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --indigo: #6366f1;
+      --indigo-light: #818cf8;
+      --indigo-dark: #4338ca;
+      --emerald: #10b981;
+      --rose: #f43f5e;
+      --amber: #f59e0b;
+      --bg: #070b14;
+      --bg2: #0d1526;
+      --bg3: #111827;
+      --surface: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.08);
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --radius: 16px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ---- NAV ---- */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 40px;
+      background: rgba(7,11,20,0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+    }
+
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: 1.4rem;
+      color: var(--text);
+      text-decoration: none;
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .logo-icon {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg, var(--indigo), var(--indigo-dark));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+
+    nav .links { display: flex; gap: 32px; list-style: none; }
+    nav .links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; transition: color 0.2s; }
+    nav .links a:hover { color: var(--text); }
+
+    .nav-cta {
+      background: var(--indigo);
+      color: #fff;
+      padding: 10px 22px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .nav-cta:hover { background: var(--indigo-dark); transform: translateY(-1px); }
+
+    /* ---- HERO ---- */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 120px 20px 80px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: '';
+      position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+      width: 800px; height: 800px;
+      background: radial-gradient(ellipse at center, rgba(99,102,241,0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(99,102,241,0.15);
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 0.8rem;
+      color: var(--indigo-light);
+      margin-bottom: 32px;
+      animation: fadeUp 0.6s ease both;
+    }
+
+    .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+    .hero h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2.5rem, 6vw, 5rem);
+      font-weight: 800;
+      line-height: 1.05;
+      max-width: 800px;
+      animation: fadeUp 0.6s 0.1s ease both;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(135deg, var(--indigo-light), var(--emerald));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--muted);
+      max-width: 560px;
+      line-height: 1.7;
+      margin: 24px auto 0;
+      font-weight: 300;
+      animation: fadeUp 0.6s 0.2s ease both;
+    }
+
+    .hero-actions {
+      display: flex; gap: 16px; flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 48px;
+      animation: fadeUp 0.6s 0.3s ease both;
+    }
+
+    .btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--indigo);
+      color: #fff;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+      box-shadow: 0 0 40px rgba(99,102,241,0.3);
+    }
+    .btn-primary:hover { background: var(--indigo-dark); transform: translateY(-2px); box-shadow: 0 0 60px rgba(99,102,241,0.4); }
+
+    .btn-secondary {
+      display: inline-flex; align-items: center; gap: 10px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { background: rgba(255,255,255,0.08); transform: translateY(-2px); }
+
+    /* ---- MOCKUP ---- */
+    .hero-mockup {
+      margin-top: 72px;
+      position: relative;
+      animation: fadeUp 0.8s 0.4s ease both;
+    }
+
+    .phone-frame {
+      width: 280px;
+      height: 560px;
+      background: var(--bg3);
+      border-radius: 40px;
+      border: 2px solid var(--border);
+      overflow: hidden;
+      position: relative;
+      margin: 0 auto;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset;
+    }
+
+    .phone-notch {
+      width: 100px; height: 28px;
+      background: var(--bg);
+      border-radius: 0 0 20px 20px;
+      margin: 0 auto;
+      position: relative; z-index: 10;
+    }
+
+    .phone-screen {
+      padding: 12px;
+      height: calc(100% - 28px);
+      overflow: hidden;
+    }
+
+    .mock-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .mock-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+
+    .mock-avatar {
+      width: 32px; height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--indigo), var(--emerald));
+    }
+
+    .mock-stat-row {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 8px; margin-bottom: 16px;
+    }
+
+    .mock-stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .mock-stat-num { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 700; }
+    .mock-stat-label { font-size: 0.65rem; color: var(--muted); margin-top: 2px; }
+    .mock-stat.alert { border-color: rgba(244,63,94,0.3); }
+    .mock-stat.alert .mock-stat-num { color: var(--rose); }
+    .mock-stat.ok .mock-stat-num { color: var(--emerald); }
+
+    .mock-list-title { font-size: 0.7rem; font-weight: 500; color: var(--muted); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+    .mock-item {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 6px;
+    }
+
+    .mock-item-icon {
+      width: 28px; height: 28px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .mock-item-name { font-size: 0.72rem; font-weight: 500; }
+    .mock-item-sub { font-size: 0.62rem; color: var(--muted); }
+    .mock-item-badge {
+      margin-left: auto;
+      font-size: 0.62rem;
+      padding: 2px 8px;
+      border-radius: 100px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .badge-ok { background: rgba(16,185,129,0.15); color: var(--emerald); }
+    .badge-low { background: rgba(244,63,94,0.15); color: var(--rose); }
+
+    /* Floating cards decorativas */
+    .float-card {
+      position: absolute;
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-size: 0.8rem;
+      white-space: nowrap;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+    }
+
+    .float-left {
+      left: -140px; top: 140px;
+      animation: floatL 4s ease-in-out infinite;
+    }
+
+    .float-right {
+      right: -140px; top: 240px;
+      animation: floatR 4s ease-in-out infinite 1s;
+    }
+
+    @keyframes floatL { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+    @keyframes floatR { 0%,100%{transform:translateY(0)} 50%{transform:translateY(10px)} }
+
+    .float-icon { font-size: 1.2rem; margin-bottom: 4px; }
+    .float-value { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; }
+    .float-label { color: var(--muted); font-size: 0.72rem; }
+
+    /* ---- FEATURES ---- */
+    .section { padding: 100px 20px; max-width: 1100px; margin: 0 auto; }
+    .section-label {
+      text-align: center; color: var(--indigo-light);
+      font-size: 0.85rem; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.1em;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 3rem);
+      font-weight: 800;
+      text-align: center;
+      max-width: 600px;
+      margin: 0 auto 20px;
+      line-height: 1.15;
+    }
+    .section-sub {
+      text-align: center;
+      color: var(--muted);
+      max-width: 500px;
+      margin: 0 auto 60px;
+      line-height: 1.7;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .feature-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 32px;
+      transition: border-color 0.3s, transform 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .feature-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .feature-card:hover { border-color: rgba(99,102,241,0.3); transform: translateY(-4px); }
+    .feature-card:hover::before { opacity: 1; }
+    .feature-card.f1::before { background: linear-gradient(90deg, var(--indigo), var(--indigo-light)); }
+    .feature-card.f2::before { background: linear-gradient(90deg, var(--emerald), #34d399); }
+    .feature-card.f3::before { background: linear-gradient(90deg, var(--rose), #fb7185); }
+    .feature-card.f4::before { background: linear-gradient(90deg, var(--amber), #fcd34d); }
+    .feature-card.f5::before { background: linear-gradient(90deg, #a78bfa, var(--indigo-light)); }
+    .feature-card.f6::before { background: linear-gradient(90deg, #22d3ee, #67e8f9); }
+
+    .feature-icon {
+      width: 48px; height: 48px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    .icon-indigo { background: rgba(99,102,241,0.15); }
+    .icon-emerald { background: rgba(16,185,129,0.15); }
+    .icon-rose { background: rgba(244,63,94,0.15); }
+    .icon-amber { background: rgba(245,158,11,0.15); }
+    .icon-violet { background: rgba(167,139,250,0.15); }
+    .icon-cyan { background: rgba(34,211,238,0.15); }
+
+    .feature-card h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .feature-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.7; }
+
+    /* ---- STEPS ---- */
+    .steps-section { padding: 80px 20px; background: var(--bg2); }
+    .steps-inner { max-width: 900px; margin: 0 auto; }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 32px;
+      margin-top: 60px;
+    }
+
+    .step {
+      text-align: center;
+      position: relative;
+    }
+
+    .step-num {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      background: var(--indigo);
+      color: #fff;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1.2rem;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 0 24px rgba(99,102,241,0.4);
+    }
+
+    .step h3 { font-family: 'Syne', sans-serif; font-size: 0.95rem; font-weight: 700; margin-bottom: 8px; }
+    .step p { color: var(--muted); font-size: 0.85rem; line-height: 1.6; }
+
+    /* ---- CTA ---- */
+    .cta-section {
+      padding: 100px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      width: 600px; height: 400px;
+      background: radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-section h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 800;
+      max-width: 600px;
+      margin: 0 auto 24px;
+      line-height: 1.1;
+    }
+
+    /* ---- FOOTER ---- */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: 40px 40px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .footer-brand { font-family: 'Syne', sans-serif; font-weight: 700; color: var(--muted); }
+    .footer-links { display: flex; gap: 24px; }
+    .footer-links a { color: var(--muted); text-decoration: none; font-size: 0.85rem; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--text); }
+    .footer-copy { color: var(--muted); font-size: 0.8rem; }
+
+    /* ---- ANIMATIONS ---- */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in { opacity: 0; transform: translateY(30px); transition: opacity 0.6s, transform 0.6s; }
+    .fade-in.visible { opacity: 1; transform: translateY(0); }
+
+    /* ---- RESPONSIVE ---- */
+    @media (max-width: 768px) {
+      nav { padding: 16px 20px; }
+      nav .links { display: none; }
+      .hero { padding: 100px 20px 60px; }
+      .float-card { display: none; }
+      footer { padding: 30px 20px; flex-direction: column; text-align: center; }
+    }
+
+    /* ---- DEMO BANNER ---- */
+    .demo-banner {
+      background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(16,185,129,0.2));
+      border: 1px solid rgba(99,102,241,0.3);
+      border-radius: 12px;
+      padding: 14px 24px;
+      margin: 32px auto 0;
+      max-width: 480px;
+      font-size: 0.85rem;
+      color: var(--indigo-light);
+      display: flex; align-items: center; gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-icon">📦</div>
+    InventApp
+  </a>
+  <ul class="links">
+    <li><a href="#caracteristicas">Características</a></li>
+    <li><a href="#como-funciona">Cómo funciona</a></li>
+    <li><a href="app.html">App</a></li>
+  </ul>
+  <a href="app.html" class="nav-cta">Abrir App →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-badge">
+    <span class="dot"></span>
+    Control de inventario para equipos modernos
+  </div>
+
+  <h1>Tu inventario,<br><span>siempre bajo control</span></h1>
+
+  <p class="hero-sub">
+    Gestiona altas y bajas de productos, recibe solicitudes de tu equipo
+    y mantén el stock actualizado — todo desde tu celular.
+  </p>
+
+  <div class="hero-actions">
+    <a href="app.html" class="btn-primary">
+      📱 Abrir la App
+    </a>
+    <a href="#como-funciona" class="btn-secondary">
+      Ver cómo funciona →
+    </a>
+  </div>
+
+  <div class="demo-banner">
+    ⚡ Modo demo activo — conecta Google Sheets para datos reales
+  </div>
+
+  <!-- Mockup del teléfono -->
+  <div class="hero-mockup">
+    <div style="position:relative; display:inline-block;">
+      <div class="phone-frame">
+        <div class="phone-notch"></div>
+        <div class="phone-screen">
+          <div class="mock-header">
+            <div>
+              <div class="mock-title">InventApp</div>
+              <div style="font-size:0.6rem;color:var(--muted)">Dashboard</div>
+            </div>
+            <div class="mock-avatar"></div>
+          </div>
+
+          <div class="mock-stat-row">
+            <div class="mock-stat ok">
+              <div class="mock-stat-num">247</div>
+              <div class="mock-stat-label">Unidades totales</div>
+            </div>
+            <div class="mock-stat alert">
+              <div class="mock-stat-num">2</div>
+              <div class="mock-stat-label">Stock bajo</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-num">8</div>
+              <div class="mock-stat-label">Productos</div>
+            </div>
+            <div class="mock-stat">
+              <div class="mock-stat-num">3</div>
+              <div class="mock-stat-label">Movs. hoy</div>
+            </div>
+          </div>
+
+          <div class="mock-list-title">Inventario reciente</div>
+
+          <div class="mock-item">
+            <div class="mock-item-icon" style="background:rgba(99,102,241,0.15)">💻</div>
+            <div>
+              <div class="mock-item-name">Laptop Dell XPS</div>
+              <div class="mock-item-sub">Almacén A-1</div>
+            </div>
+            <span class="mock-item-badge badge-ok">5 un.</span>
+          </div>
+
+          <div class="mock-item">
+            <div class="mock-item-icon" style="background:rgba(244,63,94,0.15)">☕</div>
+            <div>
+              <div class="mock-item-name">Café molido 500g</div>
+              <div class="mock-item-sub">Cocina</div>
+            </div>
+            <span class="mock-item-badge badge-low">2 bolsas</span>
+          </div>
+
+          <div class="mock-item">
+            <div class="mock-item-icon" style="background:rgba(16,185,129,0.15)">📄</div>
+            <div>
+              <div class="mock-item-name">Papel A4 (resma)</div>
+              <div class="mock-item-sub">Almacén B-2</div>
+            </div>
+            <span class="mock-item-badge badge-ok">40 res.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="float-card float-left">
+        <div class="float-icon">📈</div>
+        <div class="float-value">+12</div>
+        <div class="float-label">Altas esta semana</div>
+      </div>
+
+      <div class="float-card float-right">
+        <div class="float-icon">✅</div>
+        <div class="float-value">98%</div>
+        <div class="float-label">Precisión del stock</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="section" id="caracteristicas">
+  <div class="section-label">Características</div>
+  <h2 class="section-title">Todo lo que tu equipo necesita</h2>
+  <p class="section-sub">Diseñado para equipos que necesitan control real sin complicaciones técnicas.</p>
+
+  <div class="features-grid">
+    <div class="feature-card f1 fade-in">
+      <div class="feature-icon icon-indigo">📦</div>
+      <h3>Dashboard en tiempo real</h3>
+      <p>Visualiza el inventario completo, niveles de stock y alertas de productos bajos en un solo vistazo.</p>
+    </div>
+
+    <div class="feature-card f2 fade-in">
+      <div class="feature-icon icon-emerald">✅</div>
+      <h3>Control de altas</h3>
+      <p>Registra nuevos productos o reposiciones de stock con formularios simples. Actualización inmediata.</p>
+    </div>
+
+    <div class="feature-card f3 fade-in">
+      <div class="feature-icon icon-rose">📤</div>
+      <h3>Solicitudes de bajas</h3>
+      <p>Los miembros del equipo pueden solicitar productos desde su celular. Registro automático del solicitante.</p>
+    </div>
+
+    <div class="feature-card f4 fade-in">
+      <div class="feature-icon icon-amber">📊</div>
+      <h3>Historial completo</h3>
+      <p>Cada movimiento queda registrado con fecha, responsable y motivo. Trazabilidad total del inventario.</p>
+    </div>
+
+    <div class="feature-card f5 fade-in">
+      <div class="feature-icon icon-violet">📱</div>
+      <h3>Optimizado para celular</h3>
+      <p>PWA instalable en Android e iOS. Funciona sin internet y se actualiza automáticamente.</p>
+    </div>
+
+    <div class="feature-card f6 fade-in">
+      <div class="feature-icon icon-cyan">🔗</div>
+      <h3>Google Sheets como BD</h3>
+      <p>Tus datos viven en Google Sheets. Sin costos de servidor, fácil de exportar y editar directamente.</p>
+    </div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section class="steps-section" id="como-funciona">
+  <div class="steps-inner">
+    <div class="section-label" style="text-align:center">Cómo funciona</div>
+    <h2 class="section-title" style="text-align:center;max-width:100%;margin:0 auto 16px">En 4 pasos sencillos</h2>
+    <p class="section-sub" style="margin-bottom:0">Configura el sistema en minutos y empieza a gestionar tu inventario hoy.</p>
+
+    <div class="steps-grid">
+      <div class="step fade-in">
+        <div class="step-num">1</div>
+        <h3>Conecta Google Sheets</h3>
+        <p>Pega el script en Apps Script y despliega como Web App. Son 5 minutos.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">2</div>
+        <h3>Carga tu inventario</h3>
+        <p>Agrega tus productos con categoría, stock mínimo y ubicación.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">3</div>
+        <h3>Invita a tu equipo</h3>
+        <p>Comparte el enlace de la app. Cada quien accede desde su celular.</p>
+      </div>
+      <div class="step fade-in">
+        <div class="step-num">4</div>
+        <h3>Gestiona en tiempo real</h3>
+        <p>Altas, bajas y consultas de stock al instante desde cualquier lugar.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2>Empieza gratis<br><span style="color:var(--indigo-light)">hoy mismo</span></h2>
+  <p style="color:var(--muted);max-width:420px;margin:0 auto 40px;line-height:1.7;">
+    Sin registro, sin tarjeta de crédito. Solo instala y conecta tu Google Sheets.
+  </p>
+  <a href="app.html" class="btn-primary" style="font-size:1.1rem;padding:18px 40px;">
+    📱 Abrir InventApp
+  </a>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">📦 InventApp v1.0</div>
+  <div class="footer-links">
+    <a href="app.html">App</a>
+    <a href="#caracteristicas">Características</a>
+    <a href="https://github.com" target="_blank">GitHub</a>
+  </div>
+  <div class="footer-copy">Hecho con ❤️ para equipos que se mueven rápido</div>
+</footer>
+
+<!-- Service Worker -->
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/sw.js').catch(console.error);
+  }
+
+  // Intersection Observer para animaciones
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.15 });
+
+  document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
