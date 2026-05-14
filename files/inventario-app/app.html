@@ -780,7 +780,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   populateStaticSelects();
   await loadAll();
 
-  if ('serviceWorker' in navigator) {
+  if ('serviceWorker' in navigator && location.hostname !== 'www.claudeusercontent.com') {
     navigator.serviceWorker.register('/sw.js').catch(console.error);
   }
 });
